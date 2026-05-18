@@ -16,12 +16,13 @@ dependencies = [
 bundle = "chimerax.clip_export"
 
 [tool.chimerax]
-name = "Clip Export"
+name = "Clip-Export"
 version = "0.1.0"
 description = "Export global clip plane settings as a reusable command string"
 min-session-version = "1.0"
 max-session-version = "1.99"
 category = "General"
+module-name-override = "clip_export"
 
 [tool.setuptools.packages.find]
 where = ["src"]

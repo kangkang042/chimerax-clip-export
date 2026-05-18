@@ -1,4 +1,4 @@
-# src/chimerax/clip_export/__init__.py
+# src/__init__.py
 # Bundle registration for chimerax-clip-export
 from chimerax.core.toolshed import BundleInfo
 

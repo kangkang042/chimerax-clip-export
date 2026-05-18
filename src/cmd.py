@@ -1,5 +1,4 @@
-# src/chimerax/clip_export/cmd.py
-
+# src/cmd.py
 
 def clip_export(session):
     """Export current global clip plane settings to the Log window.
