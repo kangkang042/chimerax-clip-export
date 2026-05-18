@@ -14,5 +14,10 @@ dependencies = [
 [project.entry-points."chimerax.bundle"]
 bundle = "chimerax.clip_export"
 
+[tool.chimerax]
+name = "Clip Export"
+version = "0.1.0"
+description = "Export global clip plane settings as a reusable command string"
+
 [tool.setuptools.packages.find]
 where = ["src"]
