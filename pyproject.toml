@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "chimerax-clip-export"
+version = "0.1.0"
+description = "Export ChimeraX global clip plane settings as a reusable command string"
+requires-python = ">=3.9"
+dependencies = [
+    "chimerax-core>=1.0",
+]
+
+[project.entry-points."chimerax.bundle"]
+bundle = "chimerax.clip_export"
+
+[tool.setuptools.package-dir]
+"chimerax.clip_export" = "src/chimerax/clip_export"
