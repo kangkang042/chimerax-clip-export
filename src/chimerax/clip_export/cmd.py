@@ -17,4 +17,10 @@ def clip_export(session):
         session.logger.info("clip disable")
         return
 
-    session.logger.info(f"clip near {cp.near} far {cp.far}")
+    parts = []
+    if cp.near is not None:
+        parts.append(f"near {cp.near}")
+    if cp.far is not None:
+        parts.append(f"far {cp.far}")
+    if parts:
+        session.logger.info(f"clip {' '.join(parts)}")
