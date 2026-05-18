@@ -2,7 +2,7 @@
 import os
 import sys
 import types
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock
 
 # Shim the chimerax namespace for testing (ChimeraX is NOT installed).
 # We create chimerax as a real namespace module with __path__ pointing to
@@ -16,57 +16,57 @@ if "chimerax" not in sys.modules:
     _mod.__package__ = "chimerax"
     sys.modules["chimerax"] = _mod
 
-    # ChimeraX core is not installed -- mock its modules
     sys.modules["chimerax.core"] = MagicMock()
     sys.modules["chimerax.core.toolshed"] = MagicMock()
 
 from chimerax.clip_export.cmd import clip_export
 
 
-def test_clip_export_normal():
-    """When clipping is active, output the near/far command string."""
+def _make_session(clip=True, near=0.5, far=100.0):
+    """Build a mock session with a clip plane.
+
+    Pass clip_plane=None for the no-clip-plane case.
+    """
     session = MagicMock()
     cp = MagicMock()
-    cp.clip = True
-    type(cp).near = PropertyMock(return_value=0.5)
-    type(cp).far = PropertyMock(return_value=100.0)
+    cp.clip = clip
+    cp.near = near
+    cp.far = far
     session.main_view.clip_plane = cp
+    return session
+
+
+def test_clip_export_normal():
+    session = _make_session(near=0.5, far=100.0)
 
     clip_export(session)
 
     session.logger.info.assert_called_once_with("clip near 0.5 far 100.0")
+    session.logger.warning.assert_not_called()
 
 
 def test_clip_export_disabled():
-    """When clipping is disabled, output 'clip disable'."""
-    session = MagicMock()
-    cp = MagicMock()
-    cp.clip = False
-    session.main_view.clip_plane = cp
+    session = _make_session(clip=False)
 
     clip_export(session)
 
     session.logger.info.assert_called_once_with("clip disable")
+    session.logger.warning.assert_not_called()
 
 
 def test_clip_export_no_clip_plane():
-    """When no clip plane exists, log a warning."""
-    session = MagicMock()
+    session = _make_session()
     session.main_view.clip_plane = None
 
     clip_export(session)
 
-    session.logger.warning.assert_called_once()
+    session.logger.warning.assert_called_once_with(
+        "No clip plane attached to the main view."
+    )
 
 
 def test_clip_export_idempotent():
-    """Running clip_export twice produces the same log output."""
-    session = MagicMock()
-    cp = MagicMock()
-    cp.clip = True
-    type(cp).near = PropertyMock(return_value=0.3)
-    type(cp).far = PropertyMock(return_value=200.0)
-    session.main_view.clip_plane = cp
+    session = _make_session(near=0.3, far=200.0)
 
     clip_export(session)
     call1 = session.logger.info.call_args
@@ -81,14 +81,38 @@ def test_clip_export_idempotent():
 
 
 def test_clip_export_one_sided():
-    """When only one clip plane is set, output only that side."""
-    session = MagicMock()
-    cp = MagicMock()
-    cp.clip = True
-    type(cp).near = PropertyMock(return_value=0.5)
-    type(cp).far = PropertyMock(return_value=None)
-    session.main_view.clip_plane = cp
+    session = _make_session(near=0.5, far=None)
 
     clip_export(session)
 
     session.logger.info.assert_called_once_with("clip near 0.5")
+    session.logger.warning.assert_not_called()
+
+
+def test_clip_export_far_only():
+    session = _make_session(near=None, far=800.0)
+
+    clip_export(session)
+
+    session.logger.info.assert_called_once_with("clip far 800.0")
+    session.logger.warning.assert_not_called()
+
+
+def test_clip_export_both_none():
+    session = _make_session(near=None, far=None)
+
+    clip_export(session)
+
+    session.logger.info.assert_not_called()
+    session.logger.warning.assert_called_once_with(
+        "Clip plane has neither near nor far values set."
+    )
+
+
+def test_clip_export_zero_value():
+    session = _make_session(near=0.0, far=50.0)
+
+    clip_export(session)
+
+    session.logger.info.assert_called_once_with("clip near 0.0 far 50.0")
+    session.logger.warning.assert_not_called()

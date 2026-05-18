@@ -24,3 +24,5 @@ def clip_export(session):
         parts.append(f"far {cp.far}")
     if parts:
         session.logger.info(f"clip {' '.join(parts)}")
+    else:
+        session.logger.warning("Clip plane has neither near nor far values set.")
