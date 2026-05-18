@@ -8,3 +8,8 @@ class _BundleInfo(BundleInfo):
 
 
 bundle_info = _BundleInfo()
+
+
+def register_command(ci):
+    from .cmd import clip_export
+    ci.add_command("clip export", clip_export)
