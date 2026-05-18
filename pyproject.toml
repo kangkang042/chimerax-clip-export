@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=64", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "chimerax-clip-export"
@@ -14,5 +14,5 @@ dependencies = [
 [project.entry-points."chimerax.bundle"]
 bundle = "chimerax.clip_export"
 
-[tool.setuptools.package-dir]
-"chimerax.clip_export" = "src/chimerax/clip_export"
+[tool.setuptools.packages.find]
+where = ["src"]
