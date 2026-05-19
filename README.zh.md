@@ -7,7 +7,7 @@
 从 [Releases](https://github.com/kangkang042/chimerax-clip-export/releases) 下载最新的 `.whl` 文件，在 ChimeraX 中运行：
 
 ```
-toolshed install /path/to/chimerax_clip_export-0.1.1-py3-none-any.whl
+toolshed install /path/to/chimerax_clip_export-0.1.1.whl
 ```
 
 或从源码构建：

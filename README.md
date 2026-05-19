@@ -7,7 +7,7 @@ Export ChimeraX global near/far clip plane settings as a reusable command string
 Download the latest `.whl` file from [Releases](https://github.com/kangkang042/chimerax-clip-export/releases), then install in ChimeraX:
 
 ```
-toolshed install /path/to/chimerax_clip_export-0.1.1-py3-none-any.whl
+toolshed install /path/to/chimerax_clip_export-0.1.1.whl
 ```
 
 Or build from source:

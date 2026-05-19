@@ -10,7 +10,7 @@ NAME = "chimerax_clip_export"
 VERSION = "0.1.1"
 MODULE_PATH = "chimerax/clip_export"
 
-wheel_name = f"{NAME}-{VERSION}-py3-none-any.whl"
+wheel_name = f"{NAME}-{VERSION}.whl"
 wheel_path = os.path.join(DIST_DIR, wheel_name)
 
 os.makedirs(DIST_DIR, exist_ok=True)
