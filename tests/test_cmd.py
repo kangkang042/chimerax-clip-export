@@ -92,7 +92,7 @@ def _make_session(near=None, far=None):
 def test_clipstate_normal():
     session = _make_session(near=0.5, far=100.0)
     clipstate(session)
-    session.logger.info.assert_called_once_with("clip near 0.5 far 100")
+    session.logger.info.assert_called_once_with("clip off ; clip near 0.5 far 100")
     session.logger.warning.assert_not_called()
 
 
@@ -110,22 +110,22 @@ def test_clipstate_idempotent():
     clipstate(session)
     call2 = session.logger.info.call_args
     assert call1 == call2
-    assert call1[0][0] == "clip near 0.3 far 200"
+    assert call1[0][0] == "clip off ; clip near 0.3 far 200"
 
 
 def test_clipstate_near_only():
     session = _make_session(near=0.5, far=None)
     clipstate(session)
-    session.logger.info.assert_called_once_with("clip near 0.5")
+    session.logger.info.assert_called_once_with("clip off ; clip near 0.5")
 
 
 def test_clipstate_far_only():
     session = _make_session(near=None, far=800.0)
     clipstate(session)
-    session.logger.info.assert_called_once_with("clip far 800")
+    session.logger.info.assert_called_once_with("clip off ; clip far 800")
 
 
 def test_clipstate_zero_value():
     session = _make_session(near=0.0, far=50.0)
     clipstate(session)
-    session.logger.info.assert_called_once_with("clip near 0 far 50")
+    session.logger.info.assert_called_once_with("clip off ; clip near 0 far 50")

@@ -35,6 +35,6 @@ def clipstate(session):
         parts.append(f"far {offset:.5g}")
 
     if parts:
-        session.logger.info(f"clip {' '.join(parts)}")
+        session.logger.info(f"clip off ; clip {' '.join(parts)}")
     else:
         session.logger.info("clip off")
