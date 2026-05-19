@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chimerax-clip-export"
-version = "0.1.0"
+version = "0.1.1"
 description = "Export ChimeraX global clip plane settings as a reusable command string"
 requires-python = ">=3.9"
 dynamic = []
@@ -17,12 +17,16 @@ bundle = "chimerax.clip_export"
 
 [tool.chimerax]
 name = "Clip-Export"
-version = "0.1.0"
+version = "0.1.1"
 description = "Export global clip plane settings as a reusable command string"
-min-session-version = "1.0"
-max-session-version = "1.99"
+min-session-version = "1"
+max-session-version = "1"
 category = "General"
 module-name-override = "clip_export"
+
+[tool.chimerax.command.clipstate]
+synopsis = "Export current clip plane settings to Log"
+category = "General"
 
 [tool.setuptools.packages.find]
 where = ["src"]

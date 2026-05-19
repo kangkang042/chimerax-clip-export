@@ -14,104 +14,118 @@ if "chimerax" not in sys.modules:
     sys.modules["chimerax.core"] = _chimerax_core
 
     _chimerax_toolshed = types.ModuleType("chimerax.core.toolshed")
-    class BundleInfo:
-        pass
-    _chimerax_toolshed.BundleInfo = BundleInfo
+    class BundleAPI:
+        api_version = 1
+    _chimerax_toolshed.BundleAPI = BundleAPI
     sys.modules["chimerax.core.toolshed"] = _chimerax_toolshed
+
+    _chimerax_commands = types.ModuleType("chimerax.core.commands")
+    class CmdDesc:
+        def __init__(self, **kwargs):
+            self.synopsis = kwargs.get("synopsis", "")
+    _chimerax_commands.CmdDesc = CmdDesc
+    sys.modules["chimerax.core.commands"] = _chimerax_commands
 
 # Load our bundle package and command module
 _src = os.path.join(os.path.dirname(__file__), "..", "src")
 
-# Load chimerax.clip_export from src/__init__.py
 import importlib.util
 _spec = importlib.util.spec_from_file_location(
-    "chimerax.clip_export", os.path.join(_src, "__init__.py")
+    "chimerax.clipstate", os.path.join(_src, "__init__.py")
 )
 _mod = importlib.util.module_from_spec(_spec)
-sys.modules["chimerax.clip_export"] = _mod
+sys.modules["chimerax.clipstate"] = _mod
 _spec.loader.exec_module(_mod)
 
-# Load chimerax.clip_export.cmd from src/cmd.py
 _spec_cmd = importlib.util.spec_from_file_location(
-    "chimerax.clip_export.cmd", os.path.join(_src, "cmd.py")
+    "chimerax.clipstate.cmd", os.path.join(_src, "cmd.py")
 )
 _mod_cmd = importlib.util.module_from_spec(_spec_cmd)
-sys.modules["chimerax.clip_export.cmd"] = _mod_cmd
+sys.modules["chimerax.clipstate.cmd"] = _mod_cmd
 _spec_cmd.loader.exec_module(_mod_cmd)
 
-clip_export = _mod_cmd.clip_export
+clipstate = _mod_cmd.clipstate
 
 
-def _make_session(clip=True, near=0.5, far=100.0):
-    """Build a mock session with a clip plane."""
+class _MockPlane:
+    """Simulate a ChimeraX ClipPlane (near/far)."""
+    def __init__(self, name, offset_from_center):
+        self.name = name
+        self._offset = offset_from_center
+
+    def offset(self, point):
+        return self._offset
+
+
+class _MockClipPlanes:
+    """Simulate session.main_view.clip_planes."""
+    def __init__(self, near_plane=None, far_plane=None):
+        self._planes = [p for p in (near_plane, far_plane) if p is not None]
+
+    def find_plane(self, name):
+        for p in self._planes:
+            if p.name == name:
+                return p
+        return None
+
+    def planes(self):
+        return self._planes
+
+
+class _MockBounds:
+    def center(self):
+        from numpy import array
+        return array((0, 0, 0))
+
+
+def _make_session(near=None, far=None):
+    """Build a mock session with near/far clip planes."""
     session = MagicMock()
-    cp = MagicMock()
-    cp.clip = clip
-    cp.near = near
-    cp.far = far
-    session.main_view.clip_plane = cp
+    session.main_view.clip_planes = _MockClipPlanes(
+        near_plane=_MockPlane('near', near) if near is not None else None,
+        far_plane=_MockPlane('far', -far) if far is not None else None,
+    )
+    session.main_view.drawing_bounds.return_value = _MockBounds()
     return session
 
 
-def test_clip_export_normal():
+def test_clipstate_normal():
     session = _make_session(near=0.5, far=100.0)
-    clip_export(session)
-    session.logger.info.assert_called_once_with("clip near 0.5 far 100.0")
+    clipstate(session)
+    session.logger.info.assert_called_once_with("clip near 0.5 far 100")
     session.logger.warning.assert_not_called()
 
 
-def test_clip_export_disabled():
-    session = _make_session(clip=False)
-    clip_export(session)
-    session.logger.info.assert_called_once_with("clip disable")
-    session.logger.warning.assert_not_called()
+def test_clipstate_disabled():
+    session = _make_session(near=None, far=None)
+    clipstate(session)
+    session.logger.info.assert_called_once_with("clip off")
 
 
-def test_clip_export_no_clip_plane():
-    session = _make_session()
-    session.main_view.clip_plane = None
-    clip_export(session)
-    session.logger.warning.assert_called_once_with(
-        "No clip plane attached to the main view."
-    )
-
-
-def test_clip_export_idempotent():
+def test_clipstate_idempotent():
     session = _make_session(near=0.3, far=200.0)
-    clip_export(session)
+    clipstate(session)
     call1 = session.logger.info.call_args
     session.logger.info.reset_mock()
-    clip_export(session)
+    clipstate(session)
     call2 = session.logger.info.call_args
     assert call1 == call2
-    assert call1[0][0] == "clip near 0.3 far 200.0"
+    assert call1[0][0] == "clip near 0.3 far 200"
 
 
-def test_clip_export_one_sided():
+def test_clipstate_near_only():
     session = _make_session(near=0.5, far=None)
-    clip_export(session)
+    clipstate(session)
     session.logger.info.assert_called_once_with("clip near 0.5")
-    session.logger.warning.assert_not_called()
 
 
-def test_clip_export_far_only():
+def test_clipstate_far_only():
     session = _make_session(near=None, far=800.0)
-    clip_export(session)
-    session.logger.info.assert_called_once_with("clip far 800.0")
-    session.logger.warning.assert_not_called()
+    clipstate(session)
+    session.logger.info.assert_called_once_with("clip far 800")
 
 
-def test_clip_export_both_none():
-    session = _make_session(near=None, far=None)
-    clip_export(session)
-    session.logger.info.assert_not_called()
-    session.logger.warning.assert_called_once_with(
-        "Clip plane has neither near nor far values set."
-    )
-
-
-def test_clip_export_zero_value():
+def test_clipstate_zero_value():
     session = _make_session(near=0.0, far=50.0)
-    clip_export(session)
-    session.logger.info.assert_called_once_with("clip near 0.0 far 50.0")
-    session.logger.warning.assert_not_called()
+    clipstate(session)
+    session.logger.info.assert_called_once_with("clip near 0 far 50")
